@@ -1,12 +1,12 @@
 {
-  "name": "eslint-friendly-formatter",
+  "name": "eslint-formatter-linux",
   "version": "2.0.7",
-  "description": " simple formatter/reporter for eslint that's friendly with Sublime Text and iterm2 'click to open file' functionality",
-  "repository": "royriojas/eslint-friendly-formatter",
+  "description": " simple formatter/reporter for eslint that's friendly with black linux cli",
+  "repository": "merfais/eslint-formatter-linux",
   "license": "MIT",
   "author": {
-    "name": "Roy Riojas",
-    "url": "http://royriojas.com"
+    "name": "biwenqing",
+    "url": "https://github.com/merfais"
   },
   "main": "index.js",
   "files": [
@@ -70,11 +70,4 @@
     "minimist": "^1.2.0",
     "text-table": "^0.2.0"
   },
-  "changelogx": {
-    "issueIDRegExp": "#(\\d+)",
-    "commitURL": "https://github.com/royriojas/eslint-friendly-formatter/commit/{0}",
-    "authorURL": "https://github.com/{0}",
-    "issueIDURL": "https://github.com/royriojas/eslint-friendly-formatter/issues/{0}",
-    "projectName": "eslint-friendly-formatter"
-  }
 }
