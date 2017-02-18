@@ -32,8 +32,7 @@ var parseBoolEnvVar = function(varName) {
 };
 
 var subtleLog = function(args) {
-  //return parseBoolEnvVar('EFF_NO_GRAY') ? args : chalk.white.bold(args);
-  return chalk.bold(args);
+  return parseBoolEnvVar('EFF_NO_GRAY') ? args : chalk.gray(args);
 };
 
 var getEnvVar = function(varName) {
@@ -46,21 +45,17 @@ var getFileLink = function(_path, line, column) {
   if (scheme === false) {
     return false;
   }
-  return scheme.replace('{file}', _path)
-    .replace('{line}', chalk.green(line))
-    .replace('{column}', chalk.cyan(column));
+  return scheme.replace('{file}', encodeURIComponent(_path)).replace('{line}', line).replace('{column}', column);
 };
 
-var getKeyLink = function(key, isError) {
+var getKeyLink = function(key) {
   var noLinkRules = parseBoolEnvVar('EFF_NO_LINK_RULES');
   var url = key.indexOf('/') > -1 ? 'https://google.com/#q=' : 'http://eslint.org/docs/rules/';
-  var keyColor = isError ? chalk.red(key) : chalk.yellow(key);
-  //return (!noLinkRules) ? subtleLog(keyColor) : keyColor;
-  return subtleLog(keyColor);
+  return (!noLinkRules) ? chalk.underline(subtleLog(url + chalk.white(encodeURIComponent(key)))) : chalk.white(key);
 };
 
 var printSummary = function(hash, title, method) {
-  var res = '\n' + chalk[method](title + ':\n');
+  var res = '\n\n' + chalk[method](title + ':\n');
   res += table(
     Object.keys(hash).sort(function(a, b) {
       return hash[a] > hash[b] ? -1 : 1;
@@ -68,7 +63,7 @@ var printSummary = function(hash, title, method) {
       return [
         '',
         hash[key],
-        getKeyLink(key, method === 'red')
+        getKeyLink(key)
       ];
     }), {
       align: [
@@ -161,7 +156,6 @@ module.exports = function(results) {
   output += table(
         entries.reduce(function(seq, message) {
           var messageType;
-          var isError = true;
 
           if (filterRule) {
             if (message.ruleId !== filterRule) {
@@ -175,9 +169,7 @@ module.exports = function(results) {
             errorsHash[message.ruleId] = (errorsHash[message.ruleId] || 0) + 1;
             errors++;
           } else {
-            isError = false;
             messageType = chalk.yellow('⚠');
-            summaryColor = 'yellow';
             warningsHash[message.ruleId] = (warningsHash[message.ruleId] || 0) + 1;
             warnings++;
           }
@@ -200,14 +192,15 @@ module.exports = function(results) {
 
           var filePath = message.filePath;
           var link = getFileLink(filePath, line, column);
-          var msg = message.message.replace(/\.$/, '');
-          var marker = '$MARKER$  ';
+          var filename = subtleLog(filePath + ':' + line + ':' + column);
+
           seq.push([
             '',
-            messageType + '  ' + getKeyLink(message.ruleId || '', isError),
-            isError ? chalk.bold.red(msg) : chalk.bold.yellow(msg),
-            '$MARKER$  ' + chalk.bold(filePath) + ' : ' + chalk.bold.green(line + ':' + column) +
-            '$MARKER$  ' + (hasSource ? message.source + '$MARKER$  ' + arrow : '')
+            messageType + '  ' + getKeyLink(message.ruleId || ''),
+            message.message.replace(/\.$/, ''),
+            '$MARKER$  ' + (link === false ? chalk.underline(filename) : filename) +
+              (link === false ? '' : '$MARKER$  ' + chalk.underline(subtleLog(link))) + '$MARKER$  ' +
+              (hasSource ? subtleLog(message.source) + '$MARKER$  ' + subtleLog(arrow) : '') + '$MARKER$'
           ]);
           return seq;
         }, []), {
@@ -245,7 +238,6 @@ module.exports = function(results) {
     if (warnings > 0) {
       output += printSummary(warningsHash, 'Warnings', 'yellow');
     }
-    output += '\n\n=========================================================='
   }
 
   return total > 0 ? output : '';
